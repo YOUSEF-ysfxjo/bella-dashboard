@@ -80,5 +80,5 @@ def read_utf8_or_error_message(path: str) -> str:
         "Fix B: close Obsidian (or INDEX.md tab), rebuild bella-mcp. "
         "Fix C: run MCP on the Mac (no vault bind mount): "
         "docker compose stop bella-mcp && cd bella-mcp && OBSIDIAN_VAULT_PATH=\"$HOME/Documents/Obsidian Vault\" uv run python server.py "
-        "— and point LibreChat MCP URL to http://host.docker.internal:3001/mcp (see RUNNING.md).]"
+        "— and point your dashboard/client MCP URL to http://host.docker.internal:3001/mcp.]"
     )

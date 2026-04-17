@@ -2,17 +2,16 @@
 
 Personal AI Agent MCP server for Yousef Ammar.
 Connects to Notion, GitHub, and Google Calendar via the Model Context Protocol.
-Chat interface: LibreChat.
 
 ---
 
 ## Architecture
 
 ```
-LibreChat (Port 3080)
+Dashboard client (or any MCP-compatible client)
     ↓ streamable-http MCP
 bella-mcp (Port 3001)
-    ├── Notion API  → pages, databases, search, memory
+    ├── Notion API  → pages, databases, search
     ├── GitHub API  → repos, commits, issues, files
     └── Google Calendar API → events, free time, scheduling
 ```
@@ -59,19 +58,16 @@ uv run python server.py
 
 Server starts at `http://localhost:3001/mcp`
 
-### 5. Run with Docker (full stack)
+### 5. Run with Docker
 
-From the `bella-system/` root:
+From this `bella-mcp/` folder:
 
 ```bash
-cp librechat/.env.example librechat/.env
-# Edit librechat/.env with your LLM API key (OpenAI, Anthropic, or OpenRouter)
-
-docker compose up -d
+docker build -t bella-dashboard-mcp .
+docker run --rm -p 3001:3001 --env-file .env bella-dashboard-mcp
 ```
 
 - Bella MCP: `http://localhost:3001/mcp`
-- LibreChat chat UI: `http://localhost:3080`
 
 ---
 
@@ -89,7 +85,7 @@ bella-mcp/
 │   └── calendar.py        # Google Calendar API client
 │
 ├── tools/
-│   ├── notion_tools.py    # ~20 Notion MCP tools + Bella memory tools
+│   ├── notion_tools.py    # Notion MCP tools
 │   ├── github_tools.py    # ~9 GitHub MCP tools
 │   └── calendar_tools.py  # ~7 Calendar MCP tools
 │

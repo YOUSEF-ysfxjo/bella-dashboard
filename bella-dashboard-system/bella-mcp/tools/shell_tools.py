@@ -33,7 +33,7 @@ def register(mcp: "FastMCP", shell: "ShellClient") -> None:
         - shell_run("git log --oneline -10", cwd="/app/projects/text-complaint-api")
         - shell_run("python -m pytest tests/", cwd="/app/projects/text-complaint-api")
         - shell_run("git status && git diff --stat")
-        - shell_run("cat pyproject.toml", cwd="/app/projects/bella-system/bella-mcp")
+        - shell_run("cat pyproject.toml", cwd="/app/projects/bella-dashboard/bella-dashboard-system/bella-mcp")
         """
         return shell.run(command, cwd=cwd if cwd else None, timeout=timeout)
 
@@ -66,7 +66,7 @@ def register(mcp: "FastMCP", shell: "ShellClient") -> None:
 
         Examples:
         - shell_git("/app/projects/text-complaint-api", "log --oneline -5")
-        - shell_git("/app/projects/bella-system", "status")
+        - shell_git("/app/projects/bella-dashboard", "status")
         - shell_git("/app/projects/complaint-xai-fl-research", "diff --stat HEAD~1")
         """
         return shell.run(f"git {args}", cwd=repo_path)

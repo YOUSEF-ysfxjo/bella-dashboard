@@ -217,7 +217,6 @@ def configured_notion_database_ids() -> frozenset[str]:
         "NOTION_PROJECTS_DB_ID",
         "NOTION_PROJECTS_DB",
         "NOTION_PAPER_READING_DB",
-        "NOTION_BELLA_MEMORY_DB",
     )
     for name in env_keys:
         v = os.environ.get(name, "").strip().replace("-", "")

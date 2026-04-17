@@ -26,7 +26,7 @@ def register(mcp: "FastMCP", fs: "FilesystemClient") -> None:
 
         Examples:
         - fs_read("/app/projects/text-complaint-api/main.py")
-        - fs_read("/app/projects/bella-system/bella-mcp/system_prompt.txt")
+        - fs_read("/app/projects/bella-dashboard/bella-dashboard-system/bella-mcp/system_prompt.txt")
         - fs_read("/app/home/.zshrc")
         """
         return fs.read(path)
