@@ -52,11 +52,31 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 # Install dependencies
 uv sync
 
-# Run
+# Run MCP server
 uv run python server.py
 ```
 
 Server starts at `http://localhost:3001/mcp`
+
+### 4.1 Run dashboard chat API (for in-page Bella chat)
+
+```bash
+uv run python chat_api.py
+```
+
+Chat API starts at `http://localhost:3002/chat`
+
+For a deployed frontend (e.g. Netlify), deploy this API on a public URL, then set it in the dashboard once:
+
+```js
+localStorage.setItem("bella-chat-api-url", "https://your-chat-api-domain/chat");
+```
+
+Or open the page with:
+
+```text
+?chatApi=https://your-chat-api-domain/chat
+```
 
 ### 5. Run with Docker
 

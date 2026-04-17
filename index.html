@@ -547,48 +547,62 @@
     .bella-ctx-copy-btn:hover { background: rgba(99,102,241,0.2); }
     .bella-ctx-copy-btn.copied { color: #22c55e; border-color: #22c55e; background: rgba(34,197,94,0.1); }
 
-    /* ─── iframe ─────────────────────────────────────────────── */
-    .bella-iframe-wrap {
-      flex: 1; position: relative; min-height: 0;
+    /* ─── Built-in Bella Chat ────────────────────────────────── */
+    .bella-chat-wrap {
+      flex: 1; min-height: 0;
+      display: flex; flex-direction: column;
+      background: linear-gradient(180deg, rgba(20,20,36,0.55), rgba(12,12,22,0.4));
     }
-    #bella-iframe {
-      width: 100%; height: 100%; border: none;
-      display: block;
+    .bella-chat-log {
+      flex: 1; min-height: 0; overflow-y: auto;
+      padding: 16px 18px;
+      display: flex; flex-direction: column; gap: 10px;
     }
-
-    /* ─── Fallback ───────────────────────────────────────────── */
-    .bella-iframe-fallback {
-      position: absolute; inset: 0;
-      display: none; flex-direction: column; align-items: center; justify-content: center;
-      padding: 32px; text-align: center; gap: 12px;
-      background: var(--surface);
+    .bella-msg {
+      max-width: 92%;
+      border-radius: 12px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      font-size: 13px; line-height: 1.6;
+      white-space: pre-wrap;
     }
-    .bella-iframe-fallback.show { display: flex; }
-    .fallback-icon { font-size: 32px; opacity: 0.3; }
-    .fallback-title { font-size: 16px; font-weight: 700; color: var(--text); }
-    .fallback-msg { font-size: 13px; color: var(--text-subtle); line-height: 1.6; max-width: 320px; }
-    .fallback-actions { display: flex; gap: 10px; margin-top: 8px; }
-
-    .mono-tag {
-      font-family: var(--mono); font-size: 10px; font-weight: 500;
-      letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-subtle);
+    .bella-msg.user {
+      align-self: flex-end;
+      background: rgba(99,102,241,0.16);
+      border-color: rgba(99,102,241,0.4);
+      color: var(--text);
     }
-    .bella-btn-copy {
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      background: var(--surface-2); border: 1px solid var(--border);
-      color: var(--text); border-radius: var(--radius);
-      padding: 10px 16px; font-family: var(--font); font-size: 13px; font-weight: 500;
-      cursor: none; transition: border-color 0.2s;
+    .bella-msg.assistant {
+      align-self: flex-start;
+      background: var(--surface-2);
+      color: var(--text-muted);
     }
-    .bella-btn-copy:hover { border-color: var(--border-hover); }
-    .bella-btn-open {
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      background: var(--accent); color: white; border: none;
-      border-radius: var(--radius); padding: 10px 16px;
-      font-family: var(--font); font-size: 13px; font-weight: 600;
-      text-decoration: none; transition: opacity 0.2s;
+    .bella-msg-meta {
+      font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--text-subtle);
+      margin-bottom: 4px;
     }
-    .bella-btn-open:hover { opacity: 0.9; }
+    .bella-composer {
+      border-top: 1px solid var(--border);
+      padding: 12px 14px;
+      display: flex; gap: 8px; align-items: flex-end;
+      background: rgba(15,15,26,0.92);
+    }
+    .bella-input {
+      flex: 1; resize: none; min-height: 44px; max-height: 140px;
+      border-radius: 10px; border: 1px solid var(--border);
+      background: var(--surface-2); color: var(--text);
+      padding: 10px 11px; font-size: 13px; font-family: var(--font);
+      outline: none;
+    }
+    .bella-input:focus { border-color: var(--border-hover); }
+    .bella-send {
+      border: none; border-radius: 10px; padding: 10px 14px;
+      background: var(--accent); color: white; font-weight: 600;
+      cursor: none; transition: opacity 0.2s;
+    }
+    .bella-send:hover { opacity: 0.92; }
+    .bella-send:disabled { opacity: 0.45; cursor: not-allowed; }
   </style>
 </head>
 <body>
@@ -602,7 +616,7 @@
         <span class="logo-symbol">✦</span>
         <div>
           <div class="logo-title">BELLA MASTERY</div>
-          <div class="logo-sub">6-Phase Engineer Path · bella.ysfxjo.com</div>
+          <div class="logo-sub">6-Phase Engineer Path · Built-in Bella Chat</div>
         </div>
       </div>
       <div class="header-center">
@@ -697,23 +711,12 @@
       </div>
     </div>
 
-    <!-- iframe -->
-    <div class="bella-iframe-wrap">
-      <iframe
-        id="bella-iframe"
-        src="https://bella.ysfxjo.com"
-        title="Bella"
-        allow="clipboard-write; microphone"
-      ></iframe>
-      <!-- Fallback shown if iframe is blocked -->
-      <div class="bella-iframe-fallback" id="bella-iframe-fallback">
-        <div class="fallback-icon">✦</div>
-        <div class="fallback-title">Can't embed Bella here</div>
-        <div class="fallback-msg">Your browser blocked the iframe. Open Bella in a tab, paste the context, and chat normally.</div>
-        <div class="fallback-actions">
-          <button class="bella-btn-copy" onclick="copyContext()">📋 Copy context</button>
-          <a class="bella-btn-open" href="https://bella.ysfxjo.com" target="_blank">✦ Open Bella</a>
-        </div>
+    <!-- Built-in chat -->
+    <div class="bella-chat-wrap">
+      <div class="bella-chat-log" id="bella-chat-log"></div>
+      <div class="bella-composer">
+        <textarea id="bella-input" class="bella-input" placeholder="Ask Bella anything about this roadmap..."></textarea>
+        <button id="bella-send" class="bella-send" onclick="sendBellaMessage()">Send</button>
       </div>
     </div>
 
@@ -1180,6 +1183,21 @@
 
   // ─── Bella Panel ─────────────────────────────────────────────────────────
   let ctxVisible = false;
+  let bellaMessages = [];
+  let bellaSending = false;
+  const BELLA_CHAT_API_URL = resolveBellaChatApiUrl();
+
+  function resolveBellaChatApiUrl() {
+    const fromQuery = new URLSearchParams(window.location.search).get("chatApi");
+    if (fromQuery) {
+      localStorage.setItem("bella-chat-api-url", fromQuery);
+      return fromQuery;
+    }
+    const fromStorage = localStorage.getItem("bella-chat-api-url");
+    if (fromStorage) return fromStorage;
+    if (window.BELLA_CHAT_API_URL) return window.BELLA_CHAT_API_URL;
+    return "http://localhost:3002/chat";
+  }
 
   function generateContext() {
     const cw    = currentWeek();
@@ -1211,23 +1229,14 @@ Stats: Papers ${statCount('paper')}/13 · Toys ${statCount('toy')}/13 · CLI ${s
 
     document.getElementById('bella-overlay').classList.add('visible');
     document.getElementById('bella-panel').classList.add('visible');
-
-    // Detect iframe load failure (X-Frame-Options blocked)
-    const iframe = document.getElementById('bella-iframe');
-    const fallback = document.getElementById('bella-iframe-fallback');
-    iframe.onload = () => { fallback.classList.remove('show'); };
-    // If blocked, the iframe won't fire onload with content — show fallback after timeout
-    const fallbackTimer = setTimeout(() => {
-      try {
-        // If iframe is loaded but empty (blocked), contentDocument is null or has error
-        if (!iframe.contentDocument || iframe.contentDocument.body === null) {
-          fallback.classList.add('show');
-        }
-      } catch(e) {
-        // Cross-origin: means it loaded (good) — do nothing
-      }
-    }, 4000);
-    iframe.onload = () => { clearTimeout(fallbackTimer); fallback.classList.remove('show'); };
+    if (!bellaMessages.length) {
+      bellaMessages.push({
+        role: "assistant",
+        text: "I am your built-in Bella for this dashboard.\nI can answer from your roadmap and, if backend is running, use full AI chat."
+      });
+    }
+    renderBellaMessages();
+    document.getElementById("bella-input").focus();
   }
 
   function closeBellaPanel() {
@@ -1247,7 +1256,7 @@ Stats: Papers ${statCount('paper')}/13 · Toys ${statCount('toy')}/13 · CLI ${s
     navigator.clipboard.writeText(ctx).then(() => {
       const btn = document.getElementById('bella-ctx-copy-btn');
       if (btn) { btn.classList.add('copied'); btn.textContent = '✓ Copied'; }
-      showToast('📋 Context copied — paste into Bella as your first message');
+      showToast('📋 Context copied');
       setTimeout(() => {
         if (btn) { btn.classList.remove('copied'); btn.textContent = '📋 Copy'; }
       }, 2000);
@@ -1264,6 +1273,115 @@ Stats: Papers ${statCount('paper')}/13 · Toys ${statCount('toy')}/13 · CLI ${s
       showToast(`📋 Copied ${task.label} task`);
     });
   }
+
+  function renderBellaMessages() {
+    const log = document.getElementById("bella-chat-log");
+    log.innerHTML = bellaMessages.map(m => `
+      <div class="bella-msg ${m.role}">
+        <div class="bella-msg-meta">${m.role === "assistant" ? "Bella" : "You"}</div>
+        ${escapeHtml(m.text)}
+      </div>
+    `).join("");
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;");
+  }
+
+  function sendBellaMessage() {
+    if (bellaSending) return;
+    const input = document.getElementById("bella-input");
+    const sendBtn = document.getElementById("bella-send");
+    const text = input.value.trim();
+    if (!text) return;
+    bellaMessages.push({ role: "user", text });
+    input.value = "";
+    renderBellaMessages();
+    bellaSending = true;
+    sendBtn.disabled = true;
+    const pending = { role: "assistant", text: "..." };
+    bellaMessages.push(pending);
+    renderBellaMessages();
+
+    requestBellaBackendReply(text)
+      .then(reply => {
+        pending.text = reply;
+      })
+      .catch(() => {
+        pending.text = generateBellaFallbackReply(text);
+      })
+      .finally(() => {
+        bellaSending = false;
+        sendBtn.disabled = false;
+        renderBellaMessages();
+      });
+  }
+
+  async function requestBellaBackendReply(userText) {
+    const payload = {
+      message: userText,
+      context: generateContext(),
+      history: bellaMessages.slice(0, -1),
+    };
+    const response = await fetch(BELLA_CHAT_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      throw new Error(`Chat API failed: ${response.status}`);
+    }
+    const data = await response.json();
+    if (!data.reply) throw new Error("No reply from chat API");
+    return data.reply;
+  }
+
+  function generateBellaFallbackReply(userText) {
+    const q = userText.toLowerCase();
+    const week = selectedWeekId ? WEEKS.find(w => w.id === selectedWeekId) : currentWeek();
+    const phase = PHASES.find(p => p.id === week.phase);
+    const done = weekProgress(week.id);
+    const left = TASK_TYPES.filter(t => !progress[getKey(week.id, t.key)]);
+
+    if (q.includes("next") || q.includes("what should i do") || q.includes("start")) {
+      if (!left.length) {
+        return `${week.label} is complete. Great job.\nNext move: open the next week and start with the Paper task first.`;
+      }
+      const first = left[0];
+      const link = week[`${first.key}Link`] || "No source link";
+      return `Start with ${first.label} for ${week.label} (${phase.name}).\nTask: ${week[first.key]}\nSource: ${link}`;
+    }
+
+    if (q.includes("plan") || q.includes("break")) {
+      const lines = left.slice(0, 3).map((t, i) => `${i + 1}. ${t.label}: ${week[t.key]}`);
+      return `Here is a short plan for ${week.label}:\n${lines.join("\n") || "1. Week already completed."}\n\nIf you want, I can make a 7-day schedule for this week.`;
+    }
+
+    if (q.includes("progress") || q.includes("%")) {
+      const pct = Math.round((done / TASK_TYPES.length) * 100);
+      const overall = Math.round(overallProgress() * 100);
+      return `${week.label} progress: ${done}/${TASK_TYPES.length} (${pct}%).\nOverall roadmap progress: ${overall}%.`;
+    }
+
+    if (q.includes("source") || q.includes("paper") || q.includes("link")) {
+      return TASK_TYPES.map(t => `- ${t.label}: ${week[`${t.key}Link`] || "No link"}`).join("\n");
+    }
+
+      return `I can help with:\n- what to do next\n- breaking this week into a daily plan\n- checking progress\n- giving all source links\n\nCurrent focus: ${week.label} · Phase ${phase.id} (${phase.name}).\n\n(Backend AI is not reachable now, so this is local fallback mode.)`;
+  }
+
+  document.addEventListener("keydown", e => {
+    const input = document.getElementById("bella-input");
+    if (!input) return;
+    if (e.key === "Enter" && !e.shiftKey && document.activeElement === input) {
+      e.preventDefault();
+      sendBellaMessage();
+    }
+  });
 
   // Close on Escape
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeBellaPanel(); });
