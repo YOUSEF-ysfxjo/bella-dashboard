@@ -376,6 +376,39 @@
       font-size: 13px; color: var(--text-muted); line-height: 1.5;
     }
     .task-item.done .task-description { color: var(--text-subtle); text-decoration: line-through; text-decoration-color: var(--text-subtle); }
+    .task-actions {
+      margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap;
+    }
+    .task-link {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 8px;
+      background: var(--accent-dim); border: 1px solid var(--border);
+      border-radius: 4px; color: var(--accent-light);
+      font-family: var(--mono); font-size: 10px; font-weight: 500;
+      text-decoration: none; letter-spacing: 0.04em;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .task-link:hover { background: rgba(99,102,241,0.2); border-color: var(--accent); }
+    .task-link-arrow { font-size: 10px; }
+    .task-quick-link {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 8px; border-radius: 4px;
+      border: 1px solid rgba(148,163,184,0.25);
+      color: var(--text-muted); text-decoration: none;
+      font-family: var(--mono); font-size: 10px; font-weight: 500;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+    .task-quick-link:hover {
+      border-color: var(--border-hover);
+      color: var(--text);
+      background: var(--surface-3);
+    }
+
+    .week-paper-link {
+      color: var(--text-subtle); text-decoration: none;
+      transition: color 0.15s;
+    }
+    .week-paper-link:hover { color: var(--accent-light); }
 
     /* ─── Empty State ───────────────────────────────────────── */
     .detail-empty {
@@ -383,6 +416,20 @@
     }
     .detail-empty-icon { font-size: 36px; margin-bottom: 12px; opacity: 0.4; }
     .detail-empty-text { font-size: 14px; color: var(--text-subtle); }
+    .detail-sources {
+      display: flex; gap: 8px; flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .source-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      border-radius: 100px; border: 1px solid var(--border);
+      background: var(--surface-2); color: var(--text-muted);
+      text-decoration: none; padding: 4px 10px;
+      font-family: var(--mono); font-size: 10px; font-weight: 500;
+      letter-spacing: 0.04em; text-transform: uppercase;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .source-chip:hover { border-color: var(--border-hover); color: var(--text); }
 
     /* ─── Completion Toast ──────────────────────────────────── */
     .toast {
@@ -686,96 +733,161 @@
   ];
 
   const WEEKS = [
-    { id:"w1",  phase:1, label:"Week 1",
+    { id:"w1", phase:1, label:"Week 1",
       paper: "ReAct: Synergizing Reasoning and Acting (Yao 2022)",
+      paperLink: "https://arxiv.org/abs/2210.03629",
       toy:   "40-line ReAct loop — Thought → Action → Observation, no frameworks",
+      toyLink: "https://github.com/HKUDS/nanobot",
       cli:   "Filesystem & Navigation: pwd, ls, find, cat, pipe, redirect",
+      cliLink: "https://missing.csail.mit.edu/2020/shell-tools/",
       tool:  "Python stdlib: pathlib, json, dataclasses, contextlib",
-      bella: "Write SOUL.md yourself → wire into resources.py as file read" },
+      toolLink: "https://docs.python.org/3/library/",
+      bella: "Write SOUL.md yourself → wire into resources.py as file read",
+      bellaLink: "https://lilianweng.github.io/posts/2023-06-23-agent/" },
 
-    { id:"w2",  phase:1, label:"Week 2",
+    { id:"w2", phase:1, label:"Week 2",
       paper: "Chain-of-Thought Prompting (Wei 2022)",
+      paperLink: "https://arxiv.org/abs/2201.11903",
       toy:   "Add Thought: prefixes to your ReAct loop — see what changes",
+      toyLink: "https://arxiv.org/abs/2210.03629",
       cli:   "Continue Filesystem: find patterns, pipe output, write to files",
-      tool:  "logging module — JSON formatter, log levels, handlers from memory",
-      bella: "Write USER.md + MEMORY.md → replace hardcoded profile in resources.py" },
+      cliLink: "https://missing.csail.mit.edu/2020/shell-tools/",
+      tool:  "logging module — JSON formatter, log levels, handlers",
+      toolLink: "https://docs.python.org/3/library/logging.html",
+      bella: "Write USER.md + MEMORY.md → replace hardcoded profile in resources.py",
+      bellaLink: "https://lilianweng.github.io/posts/2023-03-15-prompt-engineering/" },
 
-    { id:"w3",  phase:2, label:"Week 3",
+    { id:"w3", phase:2, label:"Week 3",
       paper: "MemGPT: Towards LLMs as Operating Systems (Packer 2023)",
+      paperLink: "https://arxiv.org/abs/2310.08560",
       toy:   "60-line tiered memory dict: {core, active, warm} + promote/demote",
+      toyLink: "https://github.com/letta-ai/letta",
       cli:   "Process & System: ps, kill, top, df -h, du -sh, lsof -i :3001",
+      cliLink: "https://missing.csail.mit.edu/2020/course-shell/",
       tool:  "asyncio basics: async def, await, asyncio.gather(), sleep race",
-      bella: "Add tier field to Notion Memory DB + upgrade bella_save_memory()" },
+      toolLink: "https://realpython.com/async-io-python/",
+      bella: "Add tier field to Notion Memory DB + upgrade bella_save_memory()",
+      bellaLink: "https://github.com/mem0ai/mem0" },
 
-    { id:"w4",  phase:2, label:"Week 4",
+    { id:"w4", phase:2, label:"Week 4",
       paper: "Lost in the Middle: How LMs Use Long Contexts (Liu 2023)",
+      paperLink: "https://arxiv.org/abs/2307.03172",
       toy:   "Build fake context, put facts at start/middle/end, test retrieval order",
+      toyLink: "https://arxiv.org/abs/2307.03172",
       cli:   "Continue Process & System — diagnose Colima issues without AI",
+      cliLink: "https://missing.csail.mit.edu/2020/course-shell/",
       tool:  "asyncio advanced: asynccontextmanager, lifespan, timeout()",
-      bella: "bella_consolidate_memories() — demote by recency + access count" },
+      toolLink: "https://docs.python.org/3/library/asyncio.html",
+      bella: "bella_consolidate_memories() — demote by recency + access count",
+      bellaLink: "https://github.com/letta-ai/letta" },
 
-    { id:"w5",  phase:3, label:"Week 5",
-      paper: "Toolformer (Schick 2023) + Lilian Weng Agents blog post",
+    { id:"w5", phase:3, label:"Week 5",
+      paper: "Toolformer (Schick 2023) + Lilian Weng Agents",
+      paperLink: "https://arxiv.org/abs/2302.04761",
       toy:   "Rule-based function: decides tool call vs. direct answer — no LLM",
+      toyLink: "https://lilianweng.github.io/posts/2023-06-23-agent/",
       cli:   "Docker from Terminal: docker ps, logs, exec, inspect, stats",
+      cliLink: "https://docs.docker.com/get-started/",
       tool:  "httpx async HTTP client — call one external API yourself",
-      bella: "Token counting in resources.py — log cost of each resource at startup" },
+      toolLink: "https://www.python-httpx.org/",
+      bella: "Token counting in resources.py — log cost of each resource at startup",
+      bellaLink: "https://lilianweng.github.io/posts/2023-06-23-agent/" },
 
-    { id:"w6",  phase:3, label:"Week 6",
-      paper: "FlashAttention (Dao 2022) — conceptual read, no implementation",
+    { id:"w6", phase:3, label:"Week 6",
+      paper: "FlashAttention (Dao 2022) — conceptual read",
+      paperLink: "https://arxiv.org/abs/2205.14135",
       toy:   "Smarter Notion page fetch: if page >40KB, return section summary instead",
+      toyLink: "https://arxiv.org/abs/2205.14135",
       cli:   "Continue Docker — docker compose up/down/build from terminal only",
-      tool:  "Docker internals: explain every line of bella-mcp/Dockerfile from memory",
-      bella: "Smarter truncation in notion_get_page_content() — no more 40KB blobs" },
+      cliLink: "https://docs.docker.com/compose/",
+      tool:  "Docker internals: explain every line of Dockerfile from memory",
+      toolLink: "https://docs.docker.com/reference/dockerfile/",
+      bella: "Smarter truncation in notion_get_page_content() — no 40KB blobs",
+      bellaLink: "https://arxiv.org/abs/2205.14135" },
 
-    { id:"w7",  phase:4, label:"Week 7",
-      paper: "MCP protocol spec — modelcontextprotocol.io/specification (full read)",
-      toy:   "Minimal MCP server in pure Python — no FastMCP. One tool: echo(). Call with httpx.",
-      cli:   "Text Processing & Search: grep -r, wc -l, sed, awk, sort, uniq",
-      tool:  "MCP at wire level: JSON-RPC 2.0, tool call structure, streamable-http why",
-      bella: "Replace all print() with structured JSON logging in server.py + all tools" },
+    { id:"w7", phase:4, label:"Week 7",
+      paper: "MCP Protocol Spec (full read)",
+      paperLink: "https://modelcontextprotocol.io/specification",
+      toy:   "Minimal MCP server in pure Python — no FastMCP, one echo() tool",
+      toyLink: "https://modelcontextprotocol.io/quickstart/server",
+      cli:   "Text Processing: grep -r, wc -l, sed, awk, sort, uniq",
+      cliLink: "https://missing.csail.mit.edu/2020/data-wrangling/",
+      tool:  "MCP at wire level: JSON-RPC 2.0, tool call structure",
+      toolLink: "https://www.jsonrpc.org/specification",
+      bella: "Replace all print() with structured JSON logging",
+      bellaLink: "https://docs.python.org/3/library/logging.html" },
 
-    { id:"w8",  phase:4, label:"Week 8",
+    { id:"w8", phase:4, label:"Week 8",
       paper: "HuggingGPT (Shen 2023) — multi-model task routing",
+      paperLink: "https://arxiv.org/abs/2303.04671",
       toy:   "Message router to 3 specialist handlers — keyword-based classifier",
-      cli:   "Continue text processing + write bella-start.sh script yourself",
-      tool:  "Git as real tool: branches, stash, revert, blame, log --oneline",
-      bella: "/health endpoint — returns {notion: ok/error, github: ok, calendar: ok}" },
+      toyLink: "https://arxiv.org/abs/2303.04671",
+      cli:   "Continue text processing + write bella-start.sh yourself",
+      cliLink: "https://missing.csail.mit.edu/2020/shell-scripting/",
+      tool:  "Git as real tool: branches, stash, revert, blame, log",
+      toolLink: "https://git-scm.com/docs",
+      bella: "/health endpoint — returns {notion: ok/error, github: ok}",
+      bellaLink: "https://eugeneyan.com/writing/llm-patterns/" },
 
-    { id:"w9",  phase:4, label:"Weeks 9–12",
-      paper: "Designing ML Systems Ch. 7 (Deployment) + Ch. 9 (Continual Learning)",
-      toy:   "Retry decorator with exponential backoff from scratch — no libraries",
+    { id:"w9", phase:4, label:"Weeks 9–12",
+      paper: "Designing ML Systems Ch. 7 + Ch. 9",
+      paperLink: "https://www.oreilly.com/library/view/designing-machine-learning/9781098107956/",
+      toy:   "Retry decorator with exponential backoff from scratch",
+      toyLink: "https://realpython.com/python-sleep/#adding-a-python-sleep-call-with-decorators",
       cli:   "Shell scripting: bella-start.sh, bella-logs.sh, bella-backup.sh",
-      tool:  "Observability: Prometheus metrics format, request count, p95 latency",
-      bella: "Prometheus metrics + proper exception hierarchy in all tools" },
+      cliLink: "https://missing.csail.mit.edu/2020/shell-scripting/",
+      tool:  "Observability: Prometheus metrics, request count, p95 latency",
+      toolLink: "https://prometheus.io/docs/concepts/metric_types/",
+      bella: "Prometheus metrics + proper exception hierarchy in all tools",
+      bellaLink: "https://eugeneyan.com/writing/llm-patterns/" },
 
     { id:"w13", phase:5, label:"Weeks 13–16",
-      paper: "Generative Agents: Interactive Simulacra of Human Behavior (Park 2023)",
+      paper: "Generative Agents: Interactive Simulacra (Park 2023)",
+      paperLink: "https://arxiv.org/abs/2304.03442",
       toy:   "Agent with memory list + reflect() that summarizes last 5 memories",
-      cli:   "Full terminal ownership — all Bella ops from terminal, no AI assistance",
+      toyLink: "https://arxiv.org/abs/2304.03442",
+      cli:   "Full terminal ownership — all Bella ops from terminal only",
+      cliLink: "https://missing.csail.mit.edu/",
       tool:  "APScheduler — cron triggers in Python, async job execution",
-      bella: "scheduler.py + morning brief agent: calendar + tasks + memories → brief file" },
+      toolLink: "https://apscheduler.readthedocs.io/en/3.x/",
+      bella: "scheduler.py + morning brief agent (07:00 daily)",
+      bellaLink: "https://github.com/eugeniughelbur/obsidian-second-brain" },
 
     { id:"w17", phase:5, label:"Weeks 17–20",
       paper: "Voyager (Wang 2023) + MetaGPT (Hong 2023)",
-      toy:   "Two-agent hand-off: agents share a memory dict, one writes, one reads",
-      cli:   "Terminal: full production diagnosis of Bella failures without AI",
-      tool:  "Docker Compose networking: understand why service names resolve as DNS",
-      bella: "Nightly consolidation + weekly health check + research digest agents" },
+      paperLink: "https://arxiv.org/abs/2305.16291",
+      toy:   "Two-agent hand-off: share a memory dict, one writes, one reads",
+      toyLink: "https://arxiv.org/abs/2308.00352",
+      cli:   "Terminal: full production diagnosis of Bella without AI",
+      cliLink: "https://missing.csail.mit.edu/",
+      tool:  "Docker Compose networking: why service names resolve as DNS",
+      toolLink: "https://docs.docker.com/compose/networking/",
+      bella: "Nightly consolidation + weekly health + research digest agents",
+      bellaLink: "https://github.com/eugeniughelbur/obsidian-second-brain" },
 
     { id:"w21", phase:6, label:"Weeks 21–24",
       paper: "RAG (Lewis 2020) + Dense Passage Retrieval (Karpukhin 2020)",
-      toy:   "50-line RAG: read 3 .txt files, embed with sentence-transformers, retrieve",
+      paperLink: "https://arxiv.org/abs/2005.11401",
+      toy:   "50-line RAG: read 3 .txt files, embed, find closest to query",
+      toyLink: "https://github.com/khoj-ai/khoj",
       cli:   "Automate wiki indexing: shell script that embeds new files on save",
-      tool:  "Qdrant: collections, vectors, payloads, filters, upsert vs insert",
-      bella: "Qdrant wiki index + wiki_search(query, top_k=5) tool in wiki_tools.py" },
+      cliLink: "https://missing.csail.mit.edu/2020/shell-scripting/",
+      tool:  "Qdrant: collections, vectors, payloads, filters, hybrid search",
+      toolLink: "https://qdrant.tech/documentation/concepts/",
+      bella: "Qdrant wiki index + wiki_search(query, top_k=5)",
+      bellaLink: "https://github.com/khoj-ai/khoj" },
 
     { id:"w25", phase:6, label:"Month 4+",
       paper: "ColBERT (Khattab 2020) + HippoRAG (Guo 2024)",
+      paperLink: "https://arxiv.org/abs/2004.12832",
       toy:   "BM25 from scratch using rank_bm25 — read the 200-line source",
-      cli:   "Zero AI dependency for all terminal operations — you own it now",
-      tool:  "Nomic Embed: test on Arabic complaint dataset vs all-MiniLM-L6-v2",
-      bella: "BM25 + vector hybrid (0.3/0.7) + reranking layer in vector_store.py" },
+      toyLink: "https://github.com/dorianbrown/rank_bm25",
+      cli:   "Zero AI dependency for all terminal ops — you own it now",
+      cliLink: "https://missing.csail.mit.edu/",
+      tool:  "Nomic Embed: test on Arabic complaint dataset",
+      toolLink: "https://huggingface.co/nomic-ai/nomic-embed-text-v1",
+      bella: "BM25 + vector hybrid (0.3/0.7) + reranking layer",
+      bellaLink: "https://arxiv.org/abs/2405.14831" },
   ];
 
   const TASK_TYPES = [
@@ -892,7 +1004,11 @@
             <div class="week-status-dot"></div>
             <div style="flex:1;min-width:0">
               <div class="week-row-label">${w.label}</div>
-              <div class="week-row-paper">${w.paper}</div>
+              <div class="week-row-paper">
+                ${w.paperLink
+                  ? `<a class="week-paper-link" href="${w.paperLink}" target="_blank" onclick="event.stopPropagation()">${w.paper} ↗</a>`
+                  : w.paper}
+              </div>
             </div>
             ${isCurrent ? `<span class="week-current-tag">NOW</span>` : ''}
             <div class="week-row-progress">${done}/${TASK_TYPES.length}</div>
@@ -945,6 +1061,7 @@
     const tasks = TASK_TYPES.map(t => {
       const key  = getKey(week.id, t.key);
       const isDone = !!progress[key];
+      const sourceLink = week[`${t.key}Link`];
       return `
         <div class="task-item ${isDone ? 'done' : ''}" onclick="toggleTask('${week.id}','${t.key}')">
           <div class="task-checkbox">
@@ -956,8 +1073,20 @@
               ${t.label}
             </div>
             <div class="task-description">${week[t.key]}</div>
+            <div class="task-actions">
+              ${sourceLink
+                ? `<a class="task-link" href="${sourceLink}" target="_blank" onclick="event.stopPropagation()">Open source <span class="task-link-arrow">↗</span></a>`
+                : ''}
+              <a class="task-quick-link" href="#" onclick="copyTaskLine('${week.id}','${t.key}'); event.preventDefault(); event.stopPropagation();">Copy title</a>
+            </div>
           </div>
         </div>`;
+    }).join("");
+
+    const sourceChips = TASK_TYPES.map(t => {
+      const sourceLink = week[`${t.key}Link`];
+      if (!sourceLink) return '';
+      return `<a class="source-chip" href="${sourceLink}" target="_blank">${t.icon} ${t.label} ↗</a>`;
     }).join("");
 
     card.innerHTML = `
@@ -968,6 +1097,7 @@
           <span class="detail-phase-badge-dot" style="background:${phase.color}"></span>
           ${phase.name}
         </span>
+        <div class="detail-sources">${sourceChips}</div>
       </div>
       <div class="detail-progress-bar-wrap">
         <div class="progress-bar-label">
@@ -1121,6 +1251,17 @@ Stats: Papers ${statCount('paper')}/13 · Toys ${statCount('toy')}/13 · CLI ${s
       setTimeout(() => {
         if (btn) { btn.classList.remove('copied'); btn.textContent = '📋 Copy'; }
       }, 2000);
+    });
+  }
+
+  function copyTaskLine(weekId, taskKey) {
+    const week = WEEKS.find(w => w.id === weekId);
+    const task = TASK_TYPES.find(t => t.key === taskKey);
+    if (!week || !task) return;
+    const sourceLink = week[`${taskKey}Link`];
+    const line = `${week.label} · ${task.label}: ${week[taskKey]}${sourceLink ? ` (${sourceLink})` : ''}`;
+    navigator.clipboard.writeText(line).then(() => {
+      showToast(`📋 Copied ${task.label} task`);
     });
   }
 
