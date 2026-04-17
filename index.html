@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bella Mastery — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── Tokens ───────────────────────────────────────────── */
+    :root {
+      --bg:           #080810;
+      --surface:      #0f0f1a;
+      --surface-2:    #141424;
+      --surface-3:    #1a1a2e;
+      --accent:       #6366f1;
+      --accent-light: #818cf8;
+      --accent-dim:   rgba(99,102,241,0.12);
+      --accent-glow:  rgba(99,102,241,0.35);
+      --text:         #f1f5f9;
+      --text-muted:   #94a3b8;
+      --text-subtle:  #64748b;
+      --border:       rgba(99,102,241,0.18);
+      --border-hover: rgba(99,102,241,0.38);
+      --radius-sm:    6px;
+      --radius:       12px;
+      --radius-lg:    20px;
+      --font:         'Inter', system-ui, sans-serif;
+      --mono:         'JetBrains Mono', monospace;
+    }
+
+    /* ─── Reset ────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      min-height: 100vh;
+      cursor: none;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 800px 600px at 10% 20%, rgba(99,102,241,0.07) 0%, transparent 70%),
+        radial-gradient(ellipse 600px 500px at 90% 80%, rgba(139,92,246,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* ─── Custom Cursor ─────────────────────────────────────── */
+    #cursor-dot {
+      position: fixed; z-index: 9999; pointer-events: none;
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent-glow);
+      transform: translate(-50%, -50%);
+      transition: width 0.15s, height 0.15s, opacity 0.15s;
+    }
+    #cursor-ring {
+      position: fixed; z-index: 9998; pointer-events: none;
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 1.5px solid rgba(99,102,241,0.55);
+      transform: translate(-50%, -50%);
+      transition: border-color 0.2s, width 0.2s, height 0.2s;
+    }
+    body:has(button:hover, .phase-card:hover, .week-row:hover, .task-item:hover) #cursor-dot {
+      width: 12px; height: 12px;
+    }
+    body:has(button:hover, .phase-card:hover, .week-row:hover, .task-item:hover) #cursor-ring {
+      width: 44px; height: 44px;
+      border-color: rgba(99,102,241,0.8);
+    }
+
+    /* ─── Canvas ────────────────────────────────────────────── */
+    #particles-canvas {
+      position: fixed; inset: 0; z-index: 0;
+      pointer-events: none; opacity: 0.55;
+    }
+
+    /* ─── App Shell ─────────────────────────────────────────── */
+    #app {
+      position: relative; z-index: 1;
+      max-width: 1280px; margin: 0 auto;
+      padding: 0 24px 64px;
+    }
+
+    /* ─── Header ────────────────────────────────────────────── */
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 28px 0 24px;
+      border-bottom: 1px solid var(--border);
+      gap: 16px;
+    }
+    .logo { display: flex; align-items: center; gap: 14px; }
+    .logo-symbol {
+      font-size: 28px; color: var(--accent);
+      animation: spin-glow 8s linear infinite;
+      display: inline-block;
+      filter: drop-shadow(0 0 8px var(--accent-glow));
+    }
+    @keyframes spin-glow {
+      0%   { filter: drop-shadow(0 0 6px rgba(99,102,241,0.4)); }
+      50%  { filter: drop-shadow(0 0 14px rgba(139,92,246,0.7)); }
+      100% { filter: drop-shadow(0 0 6px rgba(99,102,241,0.4)); }
+    }
+    .logo-title {
+      font-family: var(--mono); font-size: 13px; font-weight: 600;
+      letter-spacing: 0.18em; color: var(--accent-light);
+    }
+    .logo-sub {
+      font-size: 12px; color: var(--text-subtle); margin-top: 2px;
+      letter-spacing: 0.02em;
+    }
+
+    .header-center { flex: 1; display: flex; justify-content: center; }
+    .current-week-badge {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 100px; padding: 8px 18px;
+      font-family: var(--mono); font-size: 12px;
+    }
+    .badge-label {
+      font-size: 10px; letter-spacing: 0.12em; color: var(--text-subtle);
+      text-transform: uppercase;
+    }
+    .badge-week { font-weight: 600; color: var(--text); font-size: 13px; }
+    .badge-sep { color: var(--text-subtle); }
+    .badge-phase { font-weight: 500; font-size: 12px; }
+    .badge-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.6; transform: scale(0.75); }
+    }
+
+    .overall-ring { position: relative; width: 72px; height: 72px; }
+    .overall-ring svg { width: 72px; height: 72px; }
+    .ring-label {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .ring-pct { font-size: 15px; font-weight: 700; color: var(--text); line-height: 1; }
+    .ring-sub { font-size: 9px; color: var(--text-subtle); font-family: var(--mono); letter-spacing: 0.08em; margin-top: 1px; }
+
+    /* ─── Stats Bar ─────────────────────────────────────────── */
+    .stats-bar {
+      display: flex; gap: 12px; padding: 20px 0 24px;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+    }
+    .stat-card {
+      flex: 1; min-width: 120px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px 18px;
+      display: flex; align-items: center; gap: 12px;
+      transition: border-color 0.2s, transform 0.2s;
+      cursor: default;
+    }
+    .stat-card:hover { border-color: var(--border-hover); transform: translateY(-1px); }
+    .stat-icon { font-size: 20px; line-height: 1; flex-shrink: 0; }
+    .stat-icon.mono { font-family: var(--mono); font-size: 14px; font-weight: 600; color: var(--accent-light); }
+    .stat-info { min-width: 0; }
+    .stat-numbers { font-size: 20px; font-weight: 800; line-height: 1; color: var(--text); }
+    .stat-numbers span { font-size: 13px; font-weight: 400; color: var(--text-subtle); }
+    .stat-name { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; color: var(--text-subtle); margin-top: 3px; }
+
+    /* ─── Main Layout ───────────────────────────────────────── */
+    .main-content {
+      display: grid; grid-template-columns: 1fr 380px; gap: 24px;
+      padding-top: 28px; align-items: start;
+    }
+    @media (max-width: 900px) {
+      .main-content { grid-template-columns: 1fr; }
+    }
+
+    /* ─── Phases ────────────────────────────────────────────── */
+    .phases-section {}
+    .section-header {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 16px;
+    }
+    .section-label {
+      font-family: var(--mono); font-size: 11px; font-weight: 500;
+      letter-spacing: 0.14em; color: var(--text-subtle); text-transform: uppercase;
+    }
+    .section-line { flex: 1; height: 1px; background: var(--border); }
+
+    .phases-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .phase-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden;
+      transition: border-color 0.25s, box-shadow 0.25s;
+      cursor: pointer;
+    }
+    .phase-card:hover { border-color: var(--border-hover); }
+    .phase-card.active { border-color: var(--border-hover); }
+    .phase-card.active .phase-header { background: var(--surface-2); }
+
+    .phase-header {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 18px;
+      transition: background 0.2s;
+    }
+    .phase-color-bar {
+      width: 3px; height: 32px; border-radius: 2px; flex-shrink: 0;
+    }
+    .phase-num {
+      font-family: var(--mono); font-size: 10px; font-weight: 600;
+      letter-spacing: 0.1em; color: var(--text-subtle);
+      background: var(--surface-3); border: 1px solid var(--border);
+      padding: 2px 7px; border-radius: var(--radius-sm);
+      flex-shrink: 0;
+    }
+    .phase-info { flex: 1; min-width: 0; }
+    .phase-name { font-size: 14px; font-weight: 600; color: var(--text); }
+    .phase-meta {
+      font-family: var(--mono); font-size: 11px; color: var(--text-subtle);
+      margin-top: 2px;
+    }
+    .phase-ring-wrap { flex-shrink: 0; position: relative; width: 44px; height: 44px; }
+    .phase-ring-wrap svg { width: 44px; height: 44px; }
+    .phase-ring-pct {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono); font-size: 10px; font-weight: 600;
+      color: var(--text-muted);
+    }
+    .phase-chevron {
+      font-size: 14px; color: var(--text-subtle); flex-shrink: 0;
+      transition: transform 0.25s;
+    }
+    .phase-card.active .phase-chevron { transform: rotate(180deg); }
+
+    .phase-weeks {
+      max-height: 0; overflow: hidden;
+      transition: max-height 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      border-top: 0px solid var(--border);
+    }
+    .phase-card.active .phase-weeks {
+      max-height: 500px;
+      border-top: 1px solid var(--border);
+    }
+    .phase-weeks-inner { padding: 8px 0; }
+
+    .week-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 18px 10px 36px;
+      cursor: pointer; transition: background 0.15s;
+      border-radius: 0;
+    }
+    .week-row:hover { background: var(--surface-2); }
+    .week-row.selected { background: var(--accent-dim); }
+    .week-row.current-week { background: rgba(99,102,241,0.07); }
+
+    .week-status-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+      border: 1.5px solid var(--text-subtle);
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .week-row.complete .week-status-dot { background: #22c55e; border-color: #22c55e; }
+    .week-row.partial .week-status-dot { background: var(--accent); border-color: var(--accent); }
+    .week-row.current-week .week-status-dot {
+      border-color: var(--accent);
+      animation: pulse-ring 2s ease-in-out infinite;
+    }
+    @keyframes pulse-ring {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0.4); }
+      50%       { box-shadow: 0 0 0 4px rgba(99,102,241,0); }
+    }
+
+    .week-row-label { font-size: 13px; font-weight: 500; color: var(--text); flex: 1; min-width: 0; }
+    .week-row-paper { font-size: 11px; color: var(--text-subtle); truncate white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .week-row-progress {
+      font-family: var(--mono); font-size: 10px; font-weight: 600;
+      color: var(--text-subtle); flex-shrink: 0;
+    }
+    .week-row.complete .week-row-progress { color: #22c55e; }
+
+    .week-current-tag {
+      font-family: var(--mono); font-size: 9px; font-weight: 600;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--accent); background: var(--accent-dim);
+      border: 1px solid rgba(99,102,241,0.3);
+      padding: 2px 6px; border-radius: 4px; flex-shrink: 0;
+    }
+
+    /* ─── Week Detail Panel ─────────────────────────────────── */
+    .right-panel {
+      position: sticky; top: 24px; height: fit-content;
+    }
+
+    .week-detail-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); overflow: hidden;
+    }
+
+    .detail-header {
+      padding: 20px 22px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .detail-week-num {
+      font-family: var(--mono); font-size: 11px; font-weight: 500;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .detail-title { font-size: 18px; font-weight: 700; color: var(--text); line-height: 1.3; }
+    .detail-phase-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      margin-top: 10px; padding: 4px 10px;
+      border-radius: 100px; border: 1px solid;
+      font-family: var(--mono); font-size: 11px; font-weight: 500;
+    }
+    .detail-phase-badge-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+    .detail-progress-bar-wrap {
+      padding: 14px 22px 0;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 14px;
+    }
+    .progress-bar-label {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 8px;
+    }
+    .progress-bar-text { font-size: 12px; color: var(--text-subtle); }
+    .progress-bar-count { font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--text-muted); }
+    .progress-bar-track {
+      height: 4px; background: var(--surface-3); border-radius: 2px; overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%; border-radius: 2px;
+      transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tasks-list { padding: 12px 22px 20px; display: flex; flex-direction: column; gap: 10px; }
+
+    .task-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 12px 14px; border-radius: var(--radius);
+      border: 1px solid var(--border);
+      cursor: pointer; transition: border-color 0.2s, background 0.2s, transform 0.15s;
+      background: var(--surface-2);
+    }
+    .task-item:hover { border-color: var(--border-hover); transform: translateX(2px); }
+    .task-item.done { background: rgba(34,197,94,0.05); border-color: rgba(34,197,94,0.2); }
+    .task-item.done:hover { border-color: rgba(34,197,94,0.4); }
+
+    .task-checkbox {
+      width: 20px; height: 20px; border-radius: 6px; flex-shrink: 0; margin-top: 1px;
+      border: 1.5px solid var(--text-subtle);
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s, border-color 0.2s;
+      background: transparent;
+    }
+    .task-item.done .task-checkbox { background: #22c55e; border-color: #22c55e; }
+    .task-checkbox-check {
+      opacity: 0; transform: scale(0.4) rotate(-15deg);
+      transition: opacity 0.2s, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+      color: white; font-size: 11px; font-weight: 700; line-height: 1;
+    }
+    .task-item.done .task-checkbox-check { opacity: 1; transform: scale(1) rotate(0deg); }
+
+    .task-content { flex: 1; min-width: 0; }
+    .task-type {
+      font-family: var(--mono); font-size: 10px; font-weight: 500;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-subtle); margin-bottom: 3px; display: flex; align-items: center; gap: 5px;
+    }
+    .task-type-icon { font-size: 12px; }
+    .task-description {
+      font-size: 13px; color: var(--text-muted); line-height: 1.5;
+    }
+    .task-item.done .task-description { color: var(--text-subtle); text-decoration: line-through; text-decoration-color: var(--text-subtle); }
+
+    /* ─── Empty State ───────────────────────────────────────── */
+    .detail-empty {
+      padding: 48px 22px; text-align: center;
+    }
+    .detail-empty-icon { font-size: 36px; margin-bottom: 12px; opacity: 0.4; }
+    .detail-empty-text { font-size: 14px; color: var(--text-subtle); }
+
+    /* ─── Completion Toast ──────────────────────────────────── */
+    .toast {
+      position: fixed; bottom: 32px; right: 32px; z-index: 9997;
+      background: #22c55e; color: white;
+      padding: 12px 20px; border-radius: var(--radius);
+      font-size: 14px; font-weight: 600;
+      box-shadow: 0 8px 32px rgba(34,197,94,0.35);
+      transform: translateY(80px); opacity: 0;
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s;
+      pointer-events: none;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    /* ─── Scrollbar ─────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.35); border-radius: 2px; }
+
+    /* ─── Bella FAB ──────────────────────────────────────────── */
+    .bella-fab {
+      position: fixed; bottom: 32px; right: 32px; z-index: 900;
+      display: flex; align-items: center; gap: 9px;
+      background: var(--accent); color: white;
+      border: none; border-radius: 100px;
+      padding: 13px 22px; cursor: none;
+      font-family: var(--font); font-size: 14px; font-weight: 600;
+      box-shadow: 0 4px 24px rgba(99,102,241,0.45), 0 0 0 1px rgba(99,102,241,0.3);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .bella-fab:hover {
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 8px 32px rgba(99,102,241,0.6), 0 0 0 1px rgba(99,102,241,0.5);
+    }
+    .bella-fab-icon {
+      font-size: 16px;
+      animation: spin-glow 4s linear infinite;
+    }
+
+    /* ─── Bella Panel ────────────────────────────────────────── */
+    .bella-overlay {
+      position: fixed; inset: 0; z-index: 950;
+      background: rgba(8,8,16,0.7); backdrop-filter: blur(4px);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .bella-overlay.visible { opacity: 1; pointer-events: all; }
+
+    .bella-panel {
+      position: fixed; right: 0; top: 0; bottom: 0; z-index: 960;
+      width: min(480px, 95vw);
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      box-shadow: -20px 0 60px rgba(0,0,0,0.5);
+    }
+    .bella-panel.visible { transform: translateX(0); }
+
+    .bella-panel-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 22px 24px 18px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .bella-panel-title { display: flex; align-items: center; gap: 12px; }
+    .bella-panel-icon {
+      font-size: 22px; color: var(--accent);
+      filter: drop-shadow(0 0 8px var(--accent-glow));
+    }
+    .bella-panel-name { font-size: 16px; font-weight: 700; color: var(--text); }
+    .bella-panel-sub  { font-size: 12px; color: var(--text-subtle); margin-top: 2px; }
+    .bella-panel-close {
+      background: var(--surface-2); border: 1px solid var(--border);
+      color: var(--text-subtle); border-radius: 6px;
+      width: 30px; height: 30px; cursor: none;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; transition: color 0.2s, border-color 0.2s;
+    }
+    .bella-panel-close:hover { color: var(--text); border-color: var(--border-hover); }
+
+    .bella-panel-body {
+      flex: 1; overflow-y: auto; padding: 20px 24px;
+      display: flex; flex-direction: column; gap: 20px;
+    }
+
+    .mono-tag {
+      font-family: var(--mono); font-size: 10px; font-weight: 500;
+      letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-subtle);
+    }
+
+    .bella-context-label {
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;
+    }
+    .bella-context-hint { font-size: 11px; color: var(--text-subtle); }
+
+    .bella-context-box {
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px;
+      font-family: var(--mono); font-size: 12px; line-height: 1.7;
+      color: var(--text-muted); white-space: pre-wrap;
+      max-height: 280px; overflow-y: auto;
+    }
+
+    .bella-quick-prompts { display: flex; flex-direction: column; gap: 10px; }
+    .bella-prompts-grid { display: flex; flex-direction: column; gap: 7px; }
+
+    .quick-prompt-btn {
+      display: flex; align-items: flex-start; gap: 10px;
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 11px 14px;
+      cursor: none; text-align: left;
+      transition: border-color 0.2s, background 0.2s, transform 0.15s;
+      width: 100%;
+    }
+    .quick-prompt-btn:hover {
+      border-color: var(--border-hover); background: var(--surface-3);
+      transform: translateX(2px);
+    }
+    .quick-prompt-emoji { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+    .quick-prompt-text {
+      font-family: var(--font); font-size: 13px; color: var(--text-muted); line-height: 1.4;
+    }
+    .quick-prompt-btn:hover .quick-prompt-text { color: var(--text); }
+
+    .bella-panel-footer {
+      padding: 16px 24px 24px;
+      border-top: 1px solid var(--border);
+      display: flex; gap: 10px; flex-shrink: 0;
+    }
+    .bella-btn-copy {
+      flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: var(--surface-2); border: 1px solid var(--border);
+      color: var(--text); border-radius: var(--radius);
+      padding: 12px; font-family: var(--font); font-size: 14px; font-weight: 500;
+      cursor: none; transition: border-color 0.2s, background 0.2s;
+    }
+    .bella-btn-copy:hover { border-color: var(--border-hover); background: var(--surface-3); }
+    .bella-btn-copy.copied { border-color: #22c55e; color: #22c55e; }
+
+    .bella-btn-open {
+      flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: var(--accent); color: white;
+      border: none; border-radius: var(--radius);
+      padding: 12px; font-family: var(--font); font-size: 14px; font-weight: 600;
+      text-decoration: none;
+      transition: opacity 0.2s, transform 0.2s;
+      box-shadow: 0 4px 16px rgba(99,102,241,0.35);
+    }
+    .bella-btn-open:hover { opacity: 0.9; transform: translateY(-1px); }
+  </style>
+</head>
+<body>
+  <canvas id="particles-canvas"></canvas>
+  <div id="cursor-dot"></div>
+  <div id="cursor-ring"></div>
+
+  <div id="app">
+    <header>
+      <div class="logo">
+        <span class="logo-symbol">✦</span>
+        <div>
+          <div class="logo-title">BELLA MASTERY</div>
+          <div class="logo-sub">6-Phase Engineer Path · bella.ysfxjo.com</div>
+        </div>
+      </div>
+      <div class="header-center">
+        <div class="current-week-badge" id="current-week-badge">
+          <span class="badge-label">NOW</span>
+          <span class="badge-week" id="badge-week">Week 1</span>
+          <span class="badge-sep">·</span>
+          <span class="badge-dot" id="badge-dot"></span>
+          <span class="badge-phase" id="badge-phase">Phase 1</span>
+        </div>
+      </div>
+      <div class="overall-ring">
+        <svg viewBox="0 0 72 72">
+          <circle cx="36" cy="36" r="28" fill="none" stroke="rgba(99,102,241,0.12)" stroke-width="5"/>
+          <circle cx="36" cy="36" r="28" fill="none" stroke="url(#ring-grad)" stroke-width="5"
+            stroke-dasharray="175.9" stroke-dashoffset="175.9"
+            stroke-linecap="round" transform="rotate(-90 36 36)"
+            id="overall-ring-circle"/>
+          <defs>
+            <linearGradient id="ring-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#6366f1"/>
+              <stop offset="100%" stop-color="#818cf8"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div class="ring-label">
+          <span class="ring-pct" id="overall-pct">0%</span>
+          <span class="ring-sub">done</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="stats-bar" id="stats-bar"></div>
+
+    <div class="main-content">
+      <div class="phases-section">
+        <div class="section-header">
+          <span class="section-label">Phases</span>
+          <div class="section-line"></div>
+        </div>
+        <div class="phases-list" id="phases-list"></div>
+      </div>
+      <div class="right-panel">
+        <div class="section-header">
+          <span class="section-label">Week Detail</span>
+          <div class="section-line"></div>
+        </div>
+        <div class="week-detail-card" id="week-detail-card">
+          <div class="detail-empty">
+            <div class="detail-empty-icon">✦</div>
+            <div class="detail-empty-text">Select a week to see tasks</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">🎉 Week complete!</div>
+
+  <!-- ─── Brief Bella FAB ──────────────────────────────────────────────────── -->
+  <button class="bella-fab" id="bella-fab" onclick="openBellaPanel()">
+    <span class="bella-fab-icon">✦</span>
+    <span class="bella-fab-label">Ask Bella</span>
+  </button>
+
+  <!-- ─── Bella Panel ──────────────────────────────────────────────────────── -->
+  <div class="bella-overlay" id="bella-overlay" onclick="closeBellaPanel()"></div>
+  <div class="bella-panel" id="bella-panel">
+    <div class="bella-panel-header">
+      <div class="bella-panel-title">
+        <span class="bella-panel-icon">✦</span>
+        <div>
+          <div class="bella-panel-name">Brief Bella</div>
+          <div class="bella-panel-sub">Context snapshot from your progress</div>
+        </div>
+      </div>
+      <button class="bella-panel-close" onclick="closeBellaPanel()">✕</button>
+    </div>
+
+    <div class="bella-panel-body">
+      <div class="bella-context-label">
+        <span class="mono-tag">GENERATED CONTEXT</span>
+        <span class="bella-context-hint">Paste this into Bella to get plan-aware answers</span>
+      </div>
+      <div class="bella-context-box" id="bella-context-box"></div>
+
+      <div class="bella-quick-prompts">
+        <div class="bella-prompts-label mono-tag">QUICK PROMPTS</div>
+        <div class="bella-prompts-grid" id="bella-prompts-grid"></div>
+      </div>
+    </div>
+
+    <div class="bella-panel-footer">
+      <button class="bella-btn-copy" id="bella-btn-copy" onclick="copyContext()">
+        <span>📋</span> Copy Context
+      </button>
+      <a class="bella-btn-open" href="https://bella.ysfxjo.com" target="_blank">
+        <span>✦</span> Open Bella
+      </a>
+    </div>
+  </div>
+
+  <script>
+  // ─── Plan Data ────────────────────────────────────────────────────────────
+  const START_DATE = new Date("2026-04-21");
+
+  const PHASES = [
+    { id:1, name:"Agent Architecture",    color:"#6366f1", weekRange:"Weeks 1–2"  },
+    { id:2, name:"Memory Systems",        color:"#8b5cf6", weekRange:"Weeks 3–4"  },
+    { id:3, name:"Context & Tokens",      color:"#06b6d4", weekRange:"Weeks 5–6"  },
+    { id:4, name:"Production Engineering",color:"#f59e0b", weekRange:"Weeks 7–12" },
+    { id:5, name:"Proactive Agents",      color:"#22c55e", weekRange:"Weeks 13–20"},
+    { id:6, name:"Advanced RAG",          color:"#ec4899", weekRange:"Week 21+"   },
+  ];
+
+  const WEEKS = [
+    { id:"w1",  phase:1, label:"Week 1",
+      paper: "ReAct: Synergizing Reasoning and Acting (Yao 2022)",
+      toy:   "40-line ReAct loop — Thought → Action → Observation, no frameworks",
+      cli:   "Filesystem & Navigation: pwd, ls, find, cat, pipe, redirect",
+      tool:  "Python stdlib: pathlib, json, dataclasses, contextlib",
+      bella: "Write SOUL.md yourself → wire into resources.py as file read" },
+
+    { id:"w2",  phase:1, label:"Week 2",
+      paper: "Chain-of-Thought Prompting (Wei 2022)",
+      toy:   "Add Thought: prefixes to your ReAct loop — see what changes",
+      cli:   "Continue Filesystem: find patterns, pipe output, write to files",
+      tool:  "logging module — JSON formatter, log levels, handlers from memory",
+      bella: "Write USER.md + MEMORY.md → replace hardcoded profile in resources.py" },
+
+    { id:"w3",  phase:2, label:"Week 3",
+      paper: "MemGPT: Towards LLMs as Operating Systems (Packer 2023)",
+      toy:   "60-line tiered memory dict: {core, active, warm} + promote/demote",
+      cli:   "Process & System: ps, kill, top, df -h, du -sh, lsof -i :3001",
+      tool:  "asyncio basics: async def, await, asyncio.gather(), sleep race",
+      bella: "Add tier field to Notion Memory DB + upgrade bella_save_memory()" },
+
+    { id:"w4",  phase:2, label:"Week 4",
+      paper: "Lost in the Middle: How LMs Use Long Contexts (Liu 2023)",
+      toy:   "Build fake context, put facts at start/middle/end, test retrieval order",
+      cli:   "Continue Process & System — diagnose Colima issues without AI",
+      tool:  "asyncio advanced: asynccontextmanager, lifespan, timeout()",
+      bella: "bella_consolidate_memories() — demote by recency + access count" },
+
+    { id:"w5",  phase:3, label:"Week 5",
+      paper: "Toolformer (Schick 2023) + Lilian Weng Agents blog post",
+      toy:   "Rule-based function: decides tool call vs. direct answer — no LLM",
+      cli:   "Docker from Terminal: docker ps, logs, exec, inspect, stats",
+      tool:  "httpx async HTTP client — call one external API yourself",
+      bella: "Token counting in resources.py — log cost of each resource at startup" },
+
+    { id:"w6",  phase:3, label:"Week 6",
+      paper: "FlashAttention (Dao 2022) — conceptual read, no implementation",
+      toy:   "Smarter Notion page fetch: if page >40KB, return section summary instead",
+      cli:   "Continue Docker — docker compose up/down/build from terminal only",
+      tool:  "Docker internals: explain every line of bella-mcp/Dockerfile from memory",
+      bella: "Smarter truncation in notion_get_page_content() — no more 40KB blobs" },
+
+    { id:"w7",  phase:4, label:"Week 7",
+      paper: "MCP protocol spec — modelcontextprotocol.io/specification (full read)",
+      toy:   "Minimal MCP server in pure Python — no FastMCP. One tool: echo(). Call with httpx.",
+      cli:   "Text Processing & Search: grep -r, wc -l, sed, awk, sort, uniq",
+      tool:  "MCP at wire level: JSON-RPC 2.0, tool call structure, streamable-http why",
+      bella: "Replace all print() with structured JSON logging in server.py + all tools" },
+
+    { id:"w8",  phase:4, label:"Week 8",
+      paper: "HuggingGPT (Shen 2023) — multi-model task routing",
+      toy:   "Message router to 3 specialist handlers — keyword-based classifier",
+      cli:   "Continue text processing + write bella-start.sh script yourself",
+      tool:  "Git as real tool: branches, stash, revert, blame, log --oneline",
+      bella: "/health endpoint — returns {notion: ok/error, github: ok, calendar: ok}" },
+
+    { id:"w9",  phase:4, label:"Weeks 9–12",
+      paper: "Designing ML Systems Ch. 7 (Deployment) + Ch. 9 (Continual Learning)",
+      toy:   "Retry decorator with exponential backoff from scratch — no libraries",
+      cli:   "Shell scripting: bella-start.sh, bella-logs.sh, bella-backup.sh",
+      tool:  "Observability: Prometheus metrics format, request count, p95 latency",
+      bella: "Prometheus metrics + proper exception hierarchy in all tools" },
+
+    { id:"w13", phase:5, label:"Weeks 13–16",
+      paper: "Generative Agents: Interactive Simulacra of Human Behavior (Park 2023)",
+      toy:   "Agent with memory list + reflect() that summarizes last 5 memories",
+      cli:   "Full terminal ownership — all Bella ops from terminal, no AI assistance",
+      tool:  "APScheduler — cron triggers in Python, async job execution",
+      bella: "scheduler.py + morning brief agent: calendar + tasks + memories → brief file" },
+
+    { id:"w17", phase:5, label:"Weeks 17–20",
+      paper: "Voyager (Wang 2023) + MetaGPT (Hong 2023)",
+      toy:   "Two-agent hand-off: agents share a memory dict, one writes, one reads",
+      cli:   "Terminal: full production diagnosis of Bella failures without AI",
+      tool:  "Docker Compose networking: understand why service names resolve as DNS",
+      bella: "Nightly consolidation + weekly health check + research digest agents" },
+
+    { id:"w21", phase:6, label:"Weeks 21–24",
+      paper: "RAG (Lewis 2020) + Dense Passage Retrieval (Karpukhin 2020)",
+      toy:   "50-line RAG: read 3 .txt files, embed with sentence-transformers, retrieve",
+      cli:   "Automate wiki indexing: shell script that embeds new files on save",
+      tool:  "Qdrant: collections, vectors, payloads, filters, upsert vs insert",
+      bella: "Qdrant wiki index + wiki_search(query, top_k=5) tool in wiki_tools.py" },
+
+    { id:"w25", phase:6, label:"Month 4+",
+      paper: "ColBERT (Khattab 2020) + HippoRAG (Guo 2024)",
+      toy:   "BM25 from scratch using rank_bm25 — read the 200-line source",
+      cli:   "Zero AI dependency for all terminal operations — you own it now",
+      tool:  "Nomic Embed: test on Arabic complaint dataset vs all-MiniLM-L6-v2",
+      bella: "BM25 + vector hybrid (0.3/0.7) + reranking layer in vector_store.py" },
+  ];
+
+  const TASK_TYPES = [
+    { key:"paper", icon:"📄", label:"Paper"      },
+    { key:"toy",   icon:"🧪", label:"Toy Impl"   },
+    { key:"cli",   icon:">_", label:"CLI Track"  },
+    { key:"tool",  icon:"🔧", label:"Tool"       },
+    { key:"bella", icon:"✦",  label:"Bella Build"},
+  ];
+
+  // ─── State ────────────────────────────────────────────────────────────────
+  let progress = JSON.parse(localStorage.getItem("bella-progress") || "{}");
+  let expandedPhase = null;
+  let selectedWeekId = null;
+
+  function save() {
+    localStorage.setItem("bella-progress", JSON.stringify(progress));
+  }
+
+  function getKey(weekId, taskKey) { return `${weekId}-${taskKey}`; }
+
+  function weekProgress(weekId) {
+    return TASK_TYPES.filter(t => progress[getKey(weekId, t.key)]).length;
+  }
+
+  function phaseWeeks(phaseId) {
+    return WEEKS.filter(w => w.phase === phaseId);
+  }
+
+  function phaseProgress(phaseId) {
+    const weeks = phaseWeeks(phaseId);
+    const total = weeks.length * TASK_TYPES.length;
+    const done  = weeks.reduce((s, w) => s + weekProgress(w.id), 0);
+    return total > 0 ? done / total : 0;
+  }
+
+  function overallProgress() {
+    const total = WEEKS.length * TASK_TYPES.length;
+    const done  = WEEKS.reduce((s, w) => s + weekProgress(w.id), 0);
+    return total > 0 ? done / total : 0;
+  }
+
+  function statCount(key) {
+    return WEEKS.filter(w => progress[getKey(w.id, key)]).length;
+  }
+
+  function currentWeek() {
+    const now = new Date();
+    const ms = now - START_DATE;
+    if (ms < 0) return WEEKS[0];
+    const weekNum = Math.floor(ms / (7 * 86400000));
+    // Find the week entry that covers this week number
+    const weekNums = [0,1,2,3,4,5,6,7,8,12,16,20,24]; // 0-indexed start
+    let idx = 0;
+    for (let i = weekNums.length - 1; i >= 0; i--) {
+      if (weekNum >= weekNums[i]) { idx = i; break; }
+    }
+    return WEEKS[Math.min(idx, WEEKS.length - 1)];
+  }
+
+  // ─── Render ───────────────────────────────────────────────────────────────
+  function renderStats() {
+    document.getElementById("stats-bar").innerHTML = TASK_TYPES.map(t => `
+      <div class="stat-card">
+        <span class="stat-icon ${t.key === 'cli' ? 'mono' : ''}">${t.icon}</span>
+        <div class="stat-info">
+          <div class="stat-numbers">
+            <span id="stat-${t.key}">${statCount(t.key)}</span>
+            <span>/${WEEKS.length}</span>
+          </div>
+          <div class="stat-name">${t.label}</div>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  function renderOverall() {
+    const pct = overallProgress();
+    const circ = 175.9;
+    document.getElementById("overall-pct").textContent = Math.round(pct * 100) + "%";
+    document.getElementById("overall-ring-circle").style.strokeDashoffset =
+      circ * (1 - pct);
+  }
+
+  function renderCurrentWeekBadge() {
+    const cw = currentWeek();
+    const phase = PHASES.find(p => p.id === cw.phase);
+    document.getElementById("badge-week").textContent = cw.label;
+    document.getElementById("badge-phase").textContent = "Phase " + phase.id + " · " + phase.name;
+    document.getElementById("badge-phase").style.color = phase.color;
+    const dot = document.getElementById("badge-dot");
+    dot.style.background = phase.color;
+    dot.style.boxShadow = `0 0 6px ${phase.color}`;
+  }
+
+  function renderPhases() {
+    const cw = currentWeek();
+    document.getElementById("phases-list").innerHTML = PHASES.map(phase => {
+      const weeks = phaseWeeks(phase.id);
+      const pct = phaseProgress(phase.id);
+      const circ = 119.4; // r=19
+      const offset = circ * (1 - pct);
+      const isExpanded = expandedPhase === phase.id;
+
+      const weekRows = weeks.map(w => {
+        const done = weekProgress(w.id);
+        const isComplete = done === TASK_TYPES.length;
+        const isPartial  = done > 0 && !isComplete;
+        const isCurrent  = w.id === cw.id;
+        const isSelected = w.id === selectedWeekId;
+        return `
+          <div class="week-row ${isComplete ? 'complete' : ''} ${isPartial ? 'partial' : ''} ${isCurrent ? 'current-week' : ''} ${isSelected ? 'selected' : ''}"
+               onclick="selectWeek('${w.id}'); event.stopPropagation()">
+            <div class="week-status-dot"></div>
+            <div style="flex:1;min-width:0">
+              <div class="week-row-label">${w.label}</div>
+              <div class="week-row-paper">${w.paper}</div>
+            </div>
+            ${isCurrent ? `<span class="week-current-tag">NOW</span>` : ''}
+            <div class="week-row-progress">${done}/${TASK_TYPES.length}</div>
+          </div>`;
+      }).join("");
+
+      return `
+        <div class="phase-card ${isExpanded ? 'active' : ''}" onclick="togglePhase(${phase.id})">
+          <div class="phase-header">
+            <div class="phase-color-bar" style="background:${phase.color}"></div>
+            <span class="phase-num">P${phase.id}</span>
+            <div class="phase-info">
+              <div class="phase-name">${phase.name}</div>
+              <div class="phase-meta">${phase.weekRange} · ${Math.round(pct*100)}% complete</div>
+            </div>
+            <div class="phase-ring-wrap">
+              <svg viewBox="0 0 44 44">
+                <circle cx="22" cy="22" r="19" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="3.5"/>
+                <circle cx="22" cy="22" r="19" fill="none" stroke="${phase.color}" stroke-width="3.5"
+                  stroke-dasharray="${circ}" stroke-dashoffset="${offset}"
+                  stroke-linecap="round" transform="rotate(-90 22 22)" style="transition:stroke-dashoffset 0.6s cubic-bezier(.22,1,.36,1)"/>
+              </svg>
+              <span class="phase-ring-pct">${Math.round(pct*100)}%</span>
+            </div>
+            <span class="phase-chevron">▾</span>
+          </div>
+          <div class="phase-weeks">
+            <div class="phase-weeks-inner">${weekRows}</div>
+          </div>
+        </div>`;
+    }).join("");
+  }
+
+  function renderWeekDetail() {
+    const card = document.getElementById("week-detail-card");
+    if (!selectedWeekId) {
+      card.innerHTML = `
+        <div class="detail-empty">
+          <div class="detail-empty-icon">✦</div>
+          <div class="detail-empty-text">Select a week to see tasks</div>
+        </div>`;
+      return;
+    }
+    const week  = WEEKS.find(w => w.id === selectedWeekId);
+    const phase = PHASES.find(p => p.id === week.phase);
+    const done  = weekProgress(week.id);
+    const total = TASK_TYPES.length;
+    const pct   = done / total;
+
+    const tasks = TASK_TYPES.map(t => {
+      const key  = getKey(week.id, t.key);
+      const isDone = !!progress[key];
+      return `
+        <div class="task-item ${isDone ? 'done' : ''}" onclick="toggleTask('${week.id}','${t.key}')">
+          <div class="task-checkbox">
+            <span class="task-checkbox-check">✓</span>
+          </div>
+          <div class="task-content">
+            <div class="task-type">
+              <span class="task-type-icon">${t.icon}</span>
+              ${t.label}
+            </div>
+            <div class="task-description">${week[t.key]}</div>
+          </div>
+        </div>`;
+    }).join("");
+
+    card.innerHTML = `
+      <div class="detail-header">
+        <div class="detail-week-num" style="color:${phase.color}">${week.label} · Phase ${phase.id}</div>
+        <div class="detail-title">${phase.name}</div>
+        <span class="detail-phase-badge" style="border-color:${phase.color}40;color:${phase.color};background:${phase.color}12">
+          <span class="detail-phase-badge-dot" style="background:${phase.color}"></span>
+          ${phase.name}
+        </span>
+      </div>
+      <div class="detail-progress-bar-wrap">
+        <div class="progress-bar-label">
+          <span class="progress-bar-text">Week progress</span>
+          <span class="progress-bar-count">${done} / ${total} tasks</span>
+        </div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" style="width:${pct*100}%;background:${phase.color}"></div>
+        </div>
+      </div>
+      <div class="tasks-list">${tasks}</div>`;
+  }
+
+  function render() {
+    renderStats();
+    renderOverall();
+    renderCurrentWeekBadge();
+    renderPhases();
+    renderWeekDetail();
+  }
+
+  // ─── Interactions ─────────────────────────────────────────────────────────
+  function togglePhase(phaseId) {
+    expandedPhase = expandedPhase === phaseId ? null : phaseId;
+    render();
+  }
+
+  function selectWeek(weekId) {
+    selectedWeekId = weekId;
+    // Auto-expand the correct phase
+    const week = WEEKS.find(w => w.id === weekId);
+    expandedPhase = week.phase;
+    render();
+  }
+
+  function toggleTask(weekId, taskKey) {
+    const key = getKey(weekId, taskKey);
+    progress[key] = !progress[key];
+    save();
+
+    // Check if week is now complete
+    if (weekProgress(weekId) === TASK_TYPES.length) {
+      showToast("🎉 Week complete!");
+    }
+    render();
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 2800);
+  }
+
+  // ─── Auto-open Current Week ───────────────────────────────────────────────
+  const cw = currentWeek();
+  expandedPhase  = cw.phase;
+  selectedWeekId = cw.id;
+
+  // ─── Initial Render ───────────────────────────────────────────────────────
+  render();
+
+  // ─── Custom Cursor ────────────────────────────────────────────────────────
+  const dot  = document.getElementById("cursor-dot");
+  const ring = document.getElementById("cursor-ring");
+  let mx = 0, my = 0, rx = 0, ry = 0;
+
+  document.addEventListener("mousemove", e => { mx = e.clientX; my = e.clientY; });
+
+  function animateCursor() {
+    dot.style.left  = mx + "px";
+    dot.style.top   = my + "px";
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.left = rx + "px";
+    ring.style.top  = ry + "px";
+    requestAnimationFrame(animateCursor);
+  }
+  animateCursor();
+
+  // ─── Bella Panel ─────────────────────────────────────────────────────────
+  const QUICK_PROMPTS = [
+    { emoji:"🎯", text:"What should I focus on today based on where I am in the plan?" },
+    { emoji:"📋", text:"Give me a clear summary of what I've completed and what's next." },
+    { emoji:"🧪", text:"Walk me through how to start the toy implementation for my current week." },
+    { emoji:"📄", text:"I'm about to read this week's paper. What should I focus on while reading?" },
+    { emoji:"⚡", text:"I have 1 hour right now. What's the most valuable thing I can do?" },
+    { emoji:"🔧", text:"I'm stuck on the Bella build task this week. Help me think through it." },
+  ];
+
+  function generateContext() {
+    const cw    = currentWeek();
+    const phase = PHASES.find(p => p.id === cw.phase);
+    const overall = Math.round(overallProgress() * 100);
+
+    const completedWeeks = WEEKS.filter(w => weekProgress(w.id) === TASK_TYPES.length);
+    const partialWeeks   = WEEKS.filter(w => { const d = weekProgress(w.id); return d > 0 && d < TASK_TYPES.length; });
+
+    const taskLines = TASK_TYPES.map(t => {
+      const done = !!progress[getKey(cw.id, t.key)];
+      return `  ${done ? '✓' : '○'} ${t.label}: ${cw[t.key]}`;
+    }).join('\n');
+
+    const completedStr = completedWeeks.length
+      ? completedWeeks.map(w => w.label).join(', ')
+      : 'None yet — just starting';
+
+    return `── Bella Mastery Plan · Progress Snapshot ──
+
+Overall progress: ${overall}% (${WEEKS.reduce((s,w)=>s+weekProgress(w.id),0)} / ${WEEKS.length * TASK_TYPES.length} tasks)
+
+Currently on: ${cw.label} · Phase ${phase.id}: ${phase.name}
+
+Completed weeks: ${completedStr}
+${partialWeeks.length ? `Partially done: ${partialWeeks.map(w=>w.label).join(', ')}` : ''}
+
+Current week tasks (${cw.label}):
+${taskLines}
+
+Stats:
+  Papers read:       ${statCount('paper')} / ${WEEKS.length}
+  Toy impls done:    ${statCount('toy')}   / ${WEEKS.length}
+  CLI weeks done:    ${statCount('cli')}   / ${WEEKS.length}
+  Tools mastered:    ${statCount('tool')}  / ${WEEKS.length}
+  Bella builds done: ${statCount('bella')} / ${WEEKS.length}`;
+  }
+
+  function openBellaPanel() {
+    const ctx = generateContext();
+    document.getElementById('bella-context-box').textContent = ctx;
+
+    document.getElementById('bella-prompts-grid').innerHTML = QUICK_PROMPTS.map((p, i) => `
+      <button class="quick-prompt-btn" onclick="copyPrompt(${i})">
+        <span class="quick-prompt-emoji">${p.emoji}</span>
+        <span class="quick-prompt-text">${p.text}</span>
+      </button>`).join('');
+
+    document.getElementById('bella-overlay').classList.add('visible');
+    document.getElementById('bella-panel').classList.add('visible');
+  }
+
+  function closeBellaPanel() {
+    document.getElementById('bella-overlay').classList.remove('visible');
+    document.getElementById('bella-panel').classList.remove('visible');
+  }
+
+  function copyContext() {
+    const ctx = document.getElementById('bella-context-box').textContent;
+    navigator.clipboard.writeText(ctx).then(() => {
+      const btn = document.getElementById('bella-btn-copy');
+      btn.classList.add('copied');
+      btn.innerHTML = '<span>✓</span> Copied!';
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.innerHTML = '<span>📋</span> Copy Context';
+      }, 2000);
+    });
+  }
+
+  function copyPrompt(i) {
+    const ctx = generateContext();
+    const full = ctx + '\n\n' + QUICK_PROMPTS[i].text;
+    navigator.clipboard.writeText(full).then(() => {
+      showToast('📋 Copied — paste into Bella');
+    });
+  }
+
+  // Close panel on Escape
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeBellaPanel(); });
+
+  // ─── Particles ────────────────────────────────────────────────────────────
+  const canvas = document.getElementById("particles-canvas");
+  const ctx    = canvas.getContext("2d");
+  let   W, H, particles = [];
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener("resize", resize);
+
+  function mkParticle() {
+    return {
+      x:  Math.random() * W,
+      y:  Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      r:  Math.random() * 1.8 + 0.4,
+      a:  Math.random() * 0.55 + 0.1,
+    };
+  }
+
+  for (let i = 0; i < 65; i++) particles.push(mkParticle());
+
+  function drawParticles() {
+    ctx.clearRect(0, 0, W, H);
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+      if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(129,140,248,${p.a})`;
+      ctx.fill();
+    });
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const d  = Math.sqrt(dx*dx + dy*dy);
+        if (d < 130) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = `rgba(99,102,241,${0.12 * (1 - d/130)})`;
+          ctx.lineWidth   = 0.6;
+          ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(drawParticles);
+  }
+  drawParticles();
+  </script>
+</body>
+</html>
