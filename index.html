@@ -750,6 +750,7 @@
     { id:4, name:"Production Engineering",color:"#f59e0b", weekRange:"Weeks 7–12" },
     { id:5, name:"Proactive Agents",      color:"#22c55e", weekRange:"Weeks 13–20"},
     { id:6, name:"Advanced RAG",          color:"#ec4899", weekRange:"Week 21+"   },
+    { id:7, name:"Bella v1.0 — Longitudinal AI", color:"#f97316", weekRange:"Month 5+"  },
   ];
 
   const WEEKS = [
@@ -908,6 +909,54 @@
       toolLink: "https://huggingface.co/nomic-ai/nomic-embed-text-v1",
       bella: "BM25 + vector hybrid (0.3/0.7) + reranking layer",
       bellaLink: "https://arxiv.org/abs/2405.14831" },
+
+    { id:"w29", phase:7, label:"Months 5–6",
+      paper: "MemGPT re-read as OS + llm-atomic-wiki: why Atoms beat RAG for personal AI",
+      paperLink: "https://arxiv.org/abs/2310.08560",
+      toy:   "Atom dataclass: atom_id, claim, claim_type, source, confidence, created_at — 30 lines, no frameworks",
+      toyLink: "https://github.com/letta-ai/letta",
+      cli:   "Shell pipeline: grep + awk extracts claim sentences from .md files into atoms.jsonl",
+      cliLink: "https://missing.csail.mit.edu/2020/data-wrangling/",
+      tool:  "HNSW in Qdrant: understand MIPS vs cosine, why it beats flat search at scale",
+      toolLink: "https://qdrant.tech/documentation/concepts/indexing/",
+      bella: "bella/schema/atom.py + wiki/SOUL.md seeded with first atoms — Bella's zero-start self-model",
+      bellaLink: "https://arxiv.org/abs/2310.08560" },
+
+    { id:"w33", phase:7, label:"Months 7–8",
+      paper: "Theory of Mind Emerges in LLMs (Bubeck 2023) + Generative Agents memory stream (Park 2023)",
+      paperLink: "https://arxiv.org/abs/2302.02083",
+      toy:   "3-layer ontology toy: Episode → Psyche → Goal as weighted dicts, update on new observation",
+      toyLink: "https://arxiv.org/abs/2304.03442",
+      cli:   "NetworkX graph from terminal: nodes=beliefs, edges=causality, export as JSON — no GUI",
+      cliLink: "https://networkx.org/documentation/stable/tutorial.html",
+      tool:  "NetworkX PersonaKG: values, beliefs, motivational patterns as weighted graph",
+      toolLink: "https://networkx.org/documentation/stable/",
+      bella: "wiki/persona/psyche.md + wiki/persona/belief-map.md — Bella's Theory of Mind layer",
+      bellaLink: "https://arxiv.org/abs/2304.03442" },
+
+    { id:"w37", phase:7, label:"Months 9–10",
+      paper: "CUSUM algorithm + Concept Drift in ML systems — detect gradual belief shift",
+      paperLink: "https://arxiv.org/abs/2004.00433",
+      toy:   "CUSUM detector from scratch: rolling mean, cumulative sum, alert on threshold — 40 lines",
+      toyLink: "https://en.wikipedia.org/wiki/CUSUM",
+      cli:   "awk pipeline: extract sentiment scores from chat logs, compute rolling 7-day mean",
+      cliLink: "https://missing.csail.mit.edu/2020/data-wrangling/",
+      tool:  "scipy.stats: Kolmogorov-Smirnov test on belief revision sequences (BRA + DCS metrics)",
+      toolLink: "https://docs.scipy.org/doc/scipy/reference/stats.html",
+      bella: "bella_belief_lint() — semantic lint: flag atom contradictions, compute BRA/DCS/CRR/ESI",
+      bellaLink: "https://arxiv.org/abs/2004.00433" },
+
+    { id:"w41", phase:7, label:"Months 11–12",
+      paper: "Proactive Conversational Agents survey (Deng 2023) — system-initiated intervention design",
+      paperLink: "https://arxiv.org/abs/2305.02571",
+      toy:   "Trigger engine: rules dict maps metric thresholds → action payloads — 50 lines, no LLM",
+      toyLink: "https://arxiv.org/abs/2305.02571",
+      cli:   "Cron integration: shell script polls CUSUM output, calls bella API on threshold breach",
+      cliLink: "https://missing.csail.mit.edu/2020/shell-scripting/",
+      tool:  "APScheduler threshold callbacks: event-driven proactive message dispatch",
+      toolLink: "https://apscheduler.readthedocs.io/en/3.x/",
+      bella: "bella_proactive_nudge() — system-initiated drift alert with full intervention payload",
+      bellaLink: "https://arxiv.org/abs/2305.02571" },
   ];
 
   const TASK_TYPES = [
@@ -960,7 +1009,7 @@
     if (ms < 0) return WEEKS[0];
     const weekNum = Math.floor(ms / (7 * 86400000));
     // Find the week entry that covers this week number
-    const weekNums = [0,1,2,3,4,5,6,7,8,12,16,20,24]; // 0-indexed start
+    const weekNums = [0,1,2,3,4,5,6,7,8,12,16,20,24,28,32,36,40]; // 0-indexed start
     let idx = 0;
     for (let i = weekNums.length - 1; i >= 0; i--) {
       if (weekNum >= weekNums[i]) { idx = i; break; }
